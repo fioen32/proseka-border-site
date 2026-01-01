@@ -45,9 +45,26 @@
             text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
         }
 
-        .neon-border-pink {
-            border: 2px solid var(--accent-pink);
-            box-shadow: 0 0 10px rgba(244, 114, 182, 0.5);
+        .badge-character {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.15rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .badge-type {
+            background: linear-gradient(135deg, #4c1d95, #6d28d9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.15rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #ede9fe;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .table-container::-webkit-scrollbar {
@@ -62,7 +79,6 @@
         .status-warn { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.1); }
         .status-critical { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
 
-        /* Animation for loading */
         @keyframes pulse-custom {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -93,9 +109,15 @@
             </div>
             <div id="event-header-content" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 id="event-name" class="text-2xl md:text-4xl font-black neon-text-cyan tracking-tighter">--</h1>
-                        <p class="text-slate-400 mt-1 flex items-center gap-2">
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 id="event-name" class="text-2xl md:text-4xl font-black neon-text-cyan tracking-tighter">--</h1>
+                            <div class="flex gap-2">
+                                <span id="event-banner" class="badge-character">--</span>
+                                <span id="event-type" class="badge-type">--</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-400 mt-1 flex items-center gap-2 text-sm">
                             <i class="fa-solid fa-clock"></i> 最終更新: <span id="last-update">--</span> (JST)
                             <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300">次回更新: 21時頃</span>
                         </p>
@@ -113,20 +135,9 @@
         <!-- Main Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Left & Middle: Ranks & Status -->
+            <!-- Left & Middle Section -->
             <div class="lg:col-span-2 space-y-8">
                 
-                <!-- Status/Notice Board -->
-                <section class="glass-card p-6">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn text-pink-400"></i> お知らせ
-                    </h2>
-                    <div id="status-board" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                        <!-- Fetched from status.json -->
-                        <p class="text-slate-500 text-sm italic">読み込み中...</p>
-                    </div>
-                </section>
-
                 <!-- Border Table -->
                 <section class="glass-card p-6 overflow-hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
@@ -138,7 +149,7 @@
                                 <tr class="border-b border-slate-700">
                                     <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">順位</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">実績 (21時)</th>
-                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">翌日21時予想</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">翌日21時予測</th>
                                     <th class="py-3 px-4 text-xs font-bold text-pink-400 uppercase tracking-wider">最終予測(p50)</th>
                                     <th class="py-3 px-4 text-xs font-bold text-cyan-400 uppercase tracking-wider">安全圏(p90)</th>
                                 </tr>
@@ -150,33 +161,48 @@
                     </div>
                     <div class="mt-4 p-3 bg-slate-900/50 rounded-lg text-xs text-slate-400 flex gap-2">
                         <i class="fa-solid fa-circle-info mt-0.5"></i>
-                        <p>更新は毎日21時頃。最終日や集計遅延時は評価のみ行い、予測更新を行わない場合があります。数値はあくまで統計的な予測です。ご利用は各自の責任でよろしくお願いいたします。</p>
+                        <p>更新は毎日21時頃。最終日や集計遅延時は評価のみ行い、予測更新を行わない場合があります。数値はあくまで統計的な予測です。</p>
+                    </div>
+                </section>
+
+                <!-- Status/Notice Board -->
+                <section class="glass-card p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-pink-400"></i> お知らせ
+                    </h2>
+                    <div id="status-board" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        <p class="text-slate-500 text-sm italic">読み込み中...</p>
                     </div>
                 </section>
             </div>
 
             <!-- Right Sidebar: SNS & Links -->
             <div class="space-y-8">
-                <!-- X/Twitter Timeline -->
-                <section class="glass-card p-4 overflow-hidden flex flex-col" style="height: 600px;">
-                    <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
-                        <i class="fa-brands fa-x-twitter text-cyan-400"></i> 公式観測データ (@Pj_sekai_bdsg)
+                <!-- Info Card -->
+                <section class="glass-card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question text-cyan-400"></i> このサイトについて
                     </h2>
-                    <div class="flex-grow overflow-y-auto rounded-lg bg-white/5">
-                        <a class="twitter-timeline" data-theme="dark" data-chrome="noheader nofooter transparent" href="https://twitter.com/Pj_sekai_bdsg?ref_src=twsrc%5Etfw">Tweets by Pj_sekai_bdsg</a>
-                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        本サイトは、プロセカの過去イベントデータに基づき、独自のアルゴリズムで現在のボーダーから最終数値を予測しています。
+                    </p>
+                    <ul class="mt-4 space-y-2 text-[11px] text-slate-400 list-disc list-inside">
+                        <li>予測値は統計に基づいた期待値です</li>
+                        <li>最終日の伸びは考慮されています</li>
+                        <li>公式データではありません</li>
+                    </ul>
                 </section>
 
                 <!-- Contact & Support -->
                 <section class="glass-card p-6 border-t-4 border-pink-500">
-                    <h2 class="text-xl font-bold mb-4">データ提供・連絡先</h2>
-                    <p class="text-sm text-slate-300 mb-6">データの不備や予測に関するお問い合わせは、観測アカウントまでお寄せください。</p>
+                    <h2 class="text-xl font-bold mb-4 text-pink-100">データ提供・連絡先</h2>
+                    <p class="text-sm text-slate-300 mb-6">データの不備や予測に関するお問い合わせ、不具合報告は下記SNSまでお寄せください。</p>
                     <div class="flex flex-col gap-3">
                         <a href="https://twitter.com/Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 font-bold py-2 px-4 rounded-full hover:bg-cyan-400 hover:text-white transition-all">
-                            <i class="fa-brands fa-x-twitter"></i> プロフィール
+                            <i class="fa-brands fa-x-twitter"></i> 公式Xプロフィール
                         </a>
                         <a href="https://twitter.com/messages/compose?recipient_id=Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-pink-600 text-white font-bold py-2 px-4 rounded-full hover:bg-pink-500 shadow-lg shadow-pink-900/20 transition-all">
-                            <i class="fa-solid fa-envelope"></i> DMを送る
+                            <i class="fa-solid fa-envelope"></i> DMで問い合わせる
                         </a>
                     </div>
                 </section>
@@ -188,14 +214,18 @@
         </footer>
     </div>
 
-    <!-- Twitter Widgets JS -->
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
     <script>
-        // --- Configuration & Mock Data ---
-        // For development/demo, we define samples if fetch fails.
+        // --- Configuration ---
+        const EVENT_NAME = "導く想い、結ぶ縁";
+        const EVENT_BANNER = "日野森雫";
+        const EVENT_TYPE = "チアフル";
+
         const mockLatest = {
-            "event": {"name":"(サンプル) 導く想い、結ぶ縁","region":"jp"},
+            "event": {
+                "name": "導く想い、結ぶ縁",
+                "banner": "花里みのり",
+                "type": "混合・マラソン"
+            },
             "snapshot": {"jst_date":"2024-05-10","approx_time":"21:00"},
             "progress": {"N":10,"day":3},
             "ranks": {
@@ -207,78 +237,59 @@
         };
 
         const mockStatus = [
-            {"date":"2024-05-10","title":"予測ロジック更新","body":"イベント形式の変更に伴い、予測アルゴリズムを微調整しました。","level":"info"},
-            {"date":"2024-05-09","title":"遅延のお知らせ","body":"公式集計サーバーの不具合により、21時の更新が遅れる可能性があります。","level":"warn"}
+            {"date":"2024-05-10","title":"予測ロジック更新","body":"イベント形式の変更に伴い、予測アルゴリズムを微調整しました。","level":"info"}
         ];
 
-        // --- Helper Functions ---
         const formatNumber = (num) => {
             if (num === null || num === undefined) return "---";
             return num.toLocaleString();
         };
 
-        const renderError = (containerId, message) => {
-            const container = document.getElementById(containerId);
-            container.innerHTML = `<div class="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
-                <i class="fa-solid fa-triangle-exclamation mr-2"></i> ${message}
-            </div>`;
-        };
-
-        // --- Core Fetching Logic ---
         async function init() {
             const timestamp = Date.now();
             
-            // 1. Fetch Latest Border Data
             try {
                 const res = await fetch(`./data/latest.json?t=${timestamp}`);
-                if (!res.ok) throw new Error("latest.json not found");
+                if (!res.ok) throw new Error();
                 const data = await res.json();
                 renderLatest(data);
             } catch (err) {
-                console.warn("Using mock data for latest.json as file was not found.");
-                renderLatest(mockLatest); // Fallback to mock for demo
+                renderLatest(mockLatest);
             }
 
-            // 2. Fetch Status Board
             try {
                 const res = await fetch(`./data/status.json?t=${timestamp}`);
-                if (!res.ok) throw new Error("status.json not found");
+                if (!res.ok) throw new Error();
                 const data = await res.json();
                 renderStatus(data);
             } catch (err) {
-                console.warn("Using mock data for status.json as file was not found.");
-                renderStatus(mockStatus); // Fallback to mock for demo
+                renderStatus(mockStatus);
             }
         }
 
         function renderLatest(data) {
-            // Header Content
             document.getElementById('event-header-loading').classList.add('hidden');
             document.getElementById('event-header-content').classList.remove('hidden');
             
-            document.getElementById('event-name').textContent = data.event.name;
+            const urlParams = new URLSearchParams(window.location.search);
+            document.getElementById('event-name').textContent = urlParams.get('event') || data.event?.name || EVENT_NAME;
+            document.getElementById('event-banner').textContent = data.event?.banner || EVENT_BANNER;
+            document.getElementById('event-type').textContent = data.event?.type || EVENT_TYPE;
+            
             document.getElementById('last-update').textContent = `${data.snapshot.jst_date} ${data.snapshot.approx_time}`;
             
-            const n = data.progress.N;
-            const day = data.progress.day;
+            const { N, day } = data.progress;
             document.getElementById('current-day').textContent = day;
-            document.getElementById('total-days').textContent = n;
-            
-            const percentage = (day / n) * 100;
-            document.getElementById('progress-fill').style.width = `${percentage}%`;
+            document.getElementById('total-days').textContent = N;
+            document.getElementById('progress-fill').style.width = `${(day / N) * 100}%`;
 
-            // Table Content
             const tbody = document.getElementById('border-table-body');
             tbody.innerHTML = '';
 
-            // Sort ranks numerically
-            const rankKeys = Object.keys(data.ranks).sort((a, b) => parseInt(a) - parseInt(b));
-
-            rankKeys.forEach(rank => {
+            Object.keys(data.ranks).sort((a, b) => parseInt(a) - parseInt(b)).forEach(rank => {
                 const info = data.ranks[rank];
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-800 hover:bg-white/5 transition-colors';
-                
                 tr.innerHTML = `
                     <td class="py-4 px-4 font-bold text-slate-300 underline decoration-cyan-500/30">TOP ${rank}位</td>
                     <td class="py-4 px-4 font-mono">${formatNumber(info.actual)}</td>
@@ -299,10 +310,7 @@
                 return;
             }
 
-            // Show newest first
-            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            sorted.forEach(item => {
+            [...data].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => {
                 const div = document.createElement('div');
                 div.className = `p-4 rounded-r-lg mb-3 ${item.level === 'critical' ? 'status-critical' : item.level === 'warn' ? 'status-warn' : 'status-info'}`;
                 div.innerHTML = `
@@ -316,7 +324,6 @@
             });
         }
 
-        // Start!
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
