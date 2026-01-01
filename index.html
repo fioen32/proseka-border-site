@@ -11,19 +11,20 @@
     <style>
         :root {
             --primary-bg: #0f172a;
-            --accent-cyan: #22d3ee;
-            --accent-pink: #f472b6;
+            --accent-main: #22d3ee; /* 動的に上書きされるデフォルト色 */
+            --accent-sub: #f472b6;  /* 動的に上書きされるデフォルト色 */
             --card-glass: rgba(30, 41, 59, 0.7);
         }
 
         body {
             background-color: var(--primary-bg);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(34, 211, 238, 0.15) 0, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(244, 114, 182, 0.15) 0, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(var(--accent-main-rgb, 34, 211, 238), 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(var(--accent-sub-rgb, 244, 114, 182), 0.15) 0, transparent 50%);
             color: #f8fafc;
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             min-height: 100vh;
+            transition: background-image 0.5s ease;
         }
 
         .glass-card {
@@ -32,17 +33,18 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
         .glass-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
-            border-color: rgba(34, 211, 238, 0.3);
+            border-color: rgba(var(--accent-main-rgb, 34, 211, 238), 0.3);
         }
 
-        .neon-text-cyan {
-            text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+        .neon-text-main {
+            color: var(--accent-main);
+            text-shadow: 0 0 10px rgba(var(--accent-main-rgb, 34, 211, 238), 0.8);
         }
 
         .badge-character {
@@ -52,8 +54,9 @@
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 800;
-            color: var(--accent-cyan);
+            color: var(--accent-main);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: color 0.5s ease;
         }
 
         .badge-type {
@@ -92,9 +95,15 @@
             overflow: hidden;
         }
         .progress-bar-fill {
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+            background: linear-gradient(90deg, var(--accent-main), var(--accent-sub));
             height: 100%;
-            transition: width 1s ease-out;
+            transition: width 1s ease-out, background 0.5s ease;
+        }
+
+        /* 順位ごとの装飾用 */
+        .rank-highlight {
+            color: var(--accent-main);
+            text-decoration-color: rgba(var(--accent-main-rgb), 0.3);
         }
     </style>
 </head>
@@ -111,7 +120,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div class="space-y-2">
                         <div class="flex flex-wrap items-center gap-2">
-                            <h1 id="event-name" class="text-2xl md:text-4xl font-black neon-text-cyan tracking-tighter">--</h1>
+                            <h1 id="event-name" class="text-2xl md:text-4xl font-black neon-text-main tracking-tighter">--</h1>
                             <div class="flex gap-2">
                                 <span id="event-banner" class="badge-character">--</span>
                                 <span id="event-type" class="badge-type">--</span>
@@ -123,7 +132,7 @@
                         </p>
                     </div>
                     <div class="text-right w-full md:w-auto">
-                        <div class="text-lg font-bold text-cyan-400">Day <span id="current-day">0</span> / <span id="total-days">0</span></div>
+                        <div class="text-lg font-bold" style="color: var(--accent-main)">Day <span id="current-day">0</span> / <span id="total-days">0</span></div>
                         <div class="progress-bar-bg w-full md:w-48 mt-2">
                             <div id="progress-fill" class="progress-bar-fill" style="width: 0%"></div>
                         </div>
@@ -141,7 +150,7 @@
                 <!-- Border Table -->
                 <section class="glass-card p-6 overflow-hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-cyan-400"></i> ボーダー確認・予測
+                        <i class="fa-solid fa-chart-line" style="color: var(--accent-main)"></i> ボーダー確認・予測
                     </h2>
                     <div class="table-container overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -150,8 +159,8 @@
                                     <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">順位</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">実績 (21時)</th>
                                     <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">翌日21時予測</th>
-                                    <th class="py-3 px-4 text-xs font-bold text-pink-400 uppercase tracking-wider">最終予測(p50)</th>
-                                    <th class="py-3 px-4 text-xs font-bold text-cyan-400 uppercase tracking-wider">安全圏(p90)</th>
+                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider" style="color: var(--accent-sub)">最終予測(p50)</th>
+                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider" style="color: var(--accent-main)">安全圏(p90)</th>
                                 </tr>
                             </thead>
                             <tbody id="border-table-body">
@@ -168,7 +177,7 @@
                 <!-- Status/Notice Board -->
                 <section class="glass-card p-6">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn text-pink-400"></i> お知らせ
+                        <i class="fa-solid fa-bullhorn" style="color: var(--accent-sub)"></i> お知らせ
                     </h2>
                     <div id="status-board" class="space-y-3 max-h-80 overflow-y-auto pr-2">
                         <p class="text-slate-500 text-sm italic">読み込み中...</p>
@@ -181,7 +190,7 @@
                 <!-- Info Card -->
                 <section class="glass-card p-6">
                     <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-question text-cyan-400"></i> このサイトについて
+                        <i class="fa-solid fa-circle-question" style="color: var(--accent-main)"></i> このサイトについて
                     </h2>
                     <p class="text-xs text-slate-300 leading-relaxed">
                         本サイトは、プロセカの過去イベントデータに基づき、独自のアルゴリズムで現在のボーダーから最終数値を予測しています。
@@ -194,14 +203,14 @@
                 </section>
 
                 <!-- Contact & Support -->
-                <section class="glass-card p-6 border-t-4 border-pink-500">
-                    <h2 class="text-xl font-bold mb-4 text-pink-100">データ提供・連絡先</h2>
+                <section class="glass-card p-6 border-t-4" style="border-top-color: var(--accent-sub)">
+                    <h2 class="text-xl font-bold mb-4 text-slate-100">データ提供・連絡先</h2>
                     <p class="text-sm text-slate-300 mb-6">データの不備や予測に関するお問い合わせ、不具合報告は下記SNSまでお寄せください。</p>
                     <div class="flex flex-col gap-3">
-                        <a href="https://twitter.com/Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 font-bold py-2 px-4 rounded-full hover:bg-cyan-400 hover:text-white transition-all">
+                        <a href="https://twitter.com/Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 font-bold py-2 px-4 rounded-full hover:opacity-80 transition-all">
                             <i class="fa-brands fa-x-twitter"></i> 公式Xプロフィール
                         </a>
-                        <a href="https://twitter.com/messages/compose?recipient_id=Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-pink-600 text-white font-bold py-2 px-4 rounded-full hover:bg-pink-500 shadow-lg shadow-pink-900/20 transition-all">
+                        <a id="dm-button" href="https://twitter.com/messages/compose?recipient_id=Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all" style="background-color: var(--accent-sub)">
                             <i class="fa-solid fa-envelope"></i> DMで問い合わせる
                         </a>
                     </div>
@@ -215,16 +224,38 @@
     </div>
 
     <script>
-        // --- Configuration ---
-        const EVENT_NAME = "導く想い、結ぶ縁";
-        const EVENT_BANNER = "花里みのり";
-        const EVENT_TYPE = "混合・マラソン";
+        // --- Character Themes Configuration ---
+        const CHARACTER_THEMES = {
+            "日野森雫": { main: "#22d3ee", sub: "#f472b6", main_rgb: "34, 211, 238", sub_rgb: "244, 114, 182" },
+            "星乃一歌": { main: "#3b82f6", sub: "#93c5fd", main_rgb: "59, 130, 246", sub_rgb: "147, 197, 253" },
+            "天馬咲希": { main: "#fbbf24", sub: "#fcd34d", main_rgb: "251, 191, 36", sub_rgb: "252, 211, 77" },
+            "望月穂波": { main: "#f87171", sub: "#fca5a5", main_rgb: "248, 113, 113", sub_rgb: "252, 165, 165" },
+            "日野森志歩": { main: "#a3e635", sub: "#d9f99d", main_rgb: "163, 230, 53", sub_rgb: "217, 249, 157" },
+            "花里みのり": { main: "#fb923c", sub: "#fdba74", main_rgb: "251, 146, 60", sub_rgb: "253, 186, 116" },
+            "桐谷遥": { main: "#60a5fa", sub: "#93c5fd", main_rgb: "96, 165, 250", sub_rgb: "147, 197, 253" },
+            "桃井愛莉": { main: "#f472b6", sub: "#f9a8d4", main_rgb: "244, 114, 182", sub_rgb: "249, 168, 212" },
+            "小豆沢こはね": { main: "#facc15", sub: "#fef08a", main_rgb: "250, 204, 21", sub_rgb: "254, 240, 138" },
+            "白石杏": { main: "#2563eb", sub: "#60a5fa", main_rgb: "37, 99, 235", sub_rgb: "96, 165, 250" },
+            "東雲彰人": { main: "#ea580c", sub: "#fb923c", main_rgb: "234, 88, 12", sub_rgb: "251, 146, 60" },
+            "青柳冬弥": { main: "#0ea5e9", sub: "#7dd3fc", main_rgb: "14, 165, 233", sub_rgb: "125, 211, 252" },
+            "天馬司": { main: "#fbbf24", sub: "#f59e0b", main_rgb: "251, 191, 36", sub_rgb: "245, 158, 11" },
+            "鳳えむ": { main: "#f472b6", sub: "#ec4899", main_rgb: "244, 114, 182", sub_rgb: "236, 72, 153" },
+            "草薙寧々": { main: "#4ade80", sub: "#22c55e", main_rgb: "74, 222, 128", sub_rgb: "34, 197, 94" },
+            "神代類": { main: "#a855f7", sub: "#8b5cf6", main_rgb: "168, 85, 247", sub_rgb: "139, 92, 246" },
+            "宵崎奏": { main: "#94a3b8", sub: "#cbd5e1", main_rgb: "148, 163, 184", sub_rgb: "203, 213, 225" },
+            "朝比奈まふゆ": { main: "#6366f1", sub: "#818cf8", main_rgb: "99, 102, 241", sub_rgb: "129, 140, 248" },
+            "東雲絵名": { main: "#b45309", sub: "#d97706", main_rgb: "180, 83, 9", sub_rgb: "217, 119, 6" },
+            "暁山瑞希": { main: "#e879f9", sub: "#f5d0fe", main_rgb: "232, 121, 249", sub_rgb: "245, 208, 254" }
+        };
 
+        const DEFAULT_THEME = { main: "#22d3ee", sub: "#f472b6", main_rgb: "34, 211, 238", sub_rgb: "244, 114, 182" };
+
+        // --- Mock Data ---
         const mockLatest = {
             "event": {
                 "name": "導く想い、結ぶ縁",
-                "banner": "花里みのり",
-                "type": "混合・マラソン"
+                "banner": "日野森雫",
+                "type": "チアフル"
             },
             "snapshot": {"jst_date":"2024-05-10","approx_time":"21:00"},
             "progress": {"N":10,"day":3},
@@ -244,6 +275,16 @@
             if (num === null || num === undefined) return "---";
             return num.toLocaleString();
         };
+
+        function applyTheme(charName) {
+            const theme = CHARACTER_THEMES[charName] || DEFAULT_THEME;
+            const root = document.documentElement;
+            
+            root.style.setProperty('--accent-main', theme.main);
+            root.style.setProperty('--accent-sub', theme.sub);
+            root.style.setProperty('--accent-main-rgb', theme.main_rgb);
+            root.style.setProperty('--accent-sub-rgb', theme.sub_rgb);
+        }
 
         async function init() {
             const timestamp = Date.now();
@@ -268,13 +309,17 @@
         }
 
         function renderLatest(data) {
+            // テーマの適用
+            const bannerChar = data.event?.banner || "日野森雫";
+            applyTheme(bannerChar);
+
             document.getElementById('event-header-loading').classList.add('hidden');
             document.getElementById('event-header-content').classList.remove('hidden');
             
             const urlParams = new URLSearchParams(window.location.search);
-            document.getElementById('event-name').textContent = urlParams.get('event') || data.event?.name || EVENT_NAME;
-            document.getElementById('event-banner').textContent = data.event?.banner || EVENT_BANNER;
-            document.getElementById('event-type').textContent = data.event?.type || EVENT_TYPE;
+            document.getElementById('event-name').textContent = urlParams.get('event') || data.event?.name || "--";
+            document.getElementById('event-banner').textContent = bannerChar;
+            document.getElementById('event-type').textContent = data.event?.type || "--";
             
             document.getElementById('last-update').textContent = `${data.snapshot.jst_date} ${data.snapshot.approx_time}`;
             
@@ -291,11 +336,11 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-800 hover:bg-white/5 transition-colors';
                 tr.innerHTML = `
-                    <td class="py-4 px-4 font-bold text-slate-300 underline decoration-cyan-500/30">TOP ${rank}位</td>
+                    <td class="py-4 px-4 font-bold text-slate-300 underline rank-highlight">TOP ${rank}位</td>
                     <td class="py-4 px-4 font-mono">${formatNumber(info.actual)}</td>
                     <td class="py-4 px-4 font-mono text-slate-400">${formatNumber(info.next_21)}</td>
-                    <td class="py-4 px-4 font-mono text-pink-400 font-bold">${formatNumber(info.final_p50)}</td>
-                    <td class="py-4 px-4 font-mono text-cyan-400 font-bold">${formatNumber(info.final_p90)}</td>
+                    <td class="py-4 px-4 font-mono font-bold" style="color: var(--accent-sub)">${formatNumber(info.final_p50)}</td>
+                    <td class="py-4 px-4 font-mono font-bold" style="color: var(--accent-main)">${formatNumber(info.final_p90)}</td>
                 `;
                 tbody.appendChild(tr);
             });
