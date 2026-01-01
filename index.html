@@ -248,6 +248,7 @@
 
         const DEFAULT_BG = { bg_rgb_main: "34, 211, 238", bg_rgb_sub: "244, 114, 182" };
 
+        // --- Mock Data ---
         const mockLatest = {
             "event": {
                 "name": "導く想い、結ぶ縁",
@@ -264,7 +265,12 @@
             }
         };
 
-        const formatNumber = (num) => (num || 0).toLocaleString();
+        const mockStatus = [
+            {"date":"2026-01-01","title":"お知らせ","body":"status.json が見つからないため仮表示です。","level":"warn"}
+        ];
+
+        // 0を正しく表示するための安全なフォーマット（(num || 0) はNG）
+        const formatNumber = (num) => (num === null || num === undefined) ? "---" : Number(num).toLocaleString();
 
         function applyTheme(charName) {
             const theme = CHARACTER_THEMES[charName] || DEFAULT_BG;
@@ -275,12 +281,26 @@
         }
 
         async function init() {
+            const ts = Date.now();
+
+            // latest.json
             try {
-                const res = await fetch(`./data/latest.json?t=${Date.now()}`);
+                const res = await fetch(`./data/latest.json?t=${ts}`);
                 const data = res.ok ? await res.json() : mockLatest;
-                renderLatest(data);
-            } catch {
+                try { renderLatest(data); } catch (e) { console.error("renderLatest failed:", e); renderLatest(mockLatest); }
+            } catch (e) {
+                console.error("latest.json error:", e);
                 renderLatest(mockLatest);
+            }
+
+            // status.json（← これが無いと「読み込み中...」のまま）
+            try {
+                const res = await fetch(`./data/status.json?t=${ts}`);
+                const data = res.ok ? await res.json() : mockStatus;
+                try { renderStatus(data); } catch (e) { console.error("renderStatus failed:", e); renderStatus(mockStatus); }
+            } catch (e) {
+                console.error("status.json error:", e);
+                renderStatus(mockStatus);
             }
         }
 
@@ -294,18 +314,26 @@
             document.getElementById('event-name').textContent = data.event?.name || "--";
             document.getElementById('event-banner').textContent = bannerChar;
             document.getElementById('event-type').textContent = data.event?.type || "--";
-            document.getElementById('last-update').textContent = `${data.snapshot.jst_date} ${data.snapshot.approx_time}`;
+
+            // snapshot/progress が無いと落ちるので安全化
+            const jstDate = data.snapshot?.jst_date || "--";
+            const approx = data.snapshot?.approx_time || "--";
+            document.getElementById('last-update').textContent = `${jstDate} ${approx}`;
             
-            const { N, day } = data.progress;
-            document.getElementById('current-day').textContent = day;
-            document.getElementById('total-days').textContent = N;
-            document.getElementById('progress-fill').style.width = `${(day / N) * 100}%`;
+            const N = Number(data.progress?.N ?? 0);
+            const day = Number(data.progress?.day ?? 0);
+            document.getElementById('current-day').textContent = day || 0;
+            document.getElementById('total-days').textContent = N || 0;
+
+            const pct = (N > 0) ? Math.max(0, Math.min(100, (day / N) * 100)) : 0;
+            document.getElementById('progress-fill').style.width = `${pct}%`;
 
             const tbody = document.getElementById('border-table-body');
             tbody.innerHTML = '';
 
-            Object.keys(data.ranks).sort((a, b) => parseInt(a) - parseInt(b)).forEach(rank => {
-                const info = data.ranks[rank];
+            const ranks = data.ranks && typeof data.ranks === 'object' ? data.ranks : {};
+            Object.keys(ranks).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).forEach(rank => {
+                const info = ranks[rank] || {};
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-800 hover:bg-white/5 transition-colors';
                 tr.innerHTML = `
@@ -322,14 +350,32 @@
         function renderStatus(data) {
             const container = document.getElementById('status-board');
             container.innerHTML = '';
-            if (!data.length) {
-                container.innerHTML = '<p class="text-slate-500 text-sm">お知らせはありません。</p>';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm">現在、新しいお知らせはありません。</p>';
                 return;
             }
-            data.forEach(item => {
+
+            // 日付降順（新しい順）
+            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sorted.forEach(item => {
+                const level = item?.level;
+                const cls = (level === 'critical')
+                    ? 'status-critical'
+                    : (level === 'warn')
+                    ? 'status-warn'
+                    : 'status-info';
+
                 const div = document.createElement('div');
-                div.className = `p-4 rounded-r-lg mb-3 ${item.level === 'critical' ? 'status-critical' : 'status-info'}`;
-                div.innerHTML = `<h3 class="font-bold text-slate-100">${item.title}</h3><p class="text-sm text-slate-400 mt-1">${item.body}</p>`;
+                div.className = `p-4 rounded-r-lg mb-3 ${cls}`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-bold text-slate-100">${item.title ?? ""}</h3>
+                        <span class="text-[10px] text-slate-500 font-mono">${item.date ?? ""}</span>
+                    </div>
+                    <p class="text-sm text-slate-400 mt-1">${item.body ?? ""}</p>
+                `;
                 container.appendChild(div);
             });
         }
