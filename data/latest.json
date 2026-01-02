@@ -7,10 +7,11 @@
   },
   "snapshot": {
     "jst_date": "2026-01-02",
-    "approx_time": "22:50"
+    "approx_time": "23:01"
   },
   "progress": {
     "N": 10,
+    "day": 3,
     "day_cell": 4,
     "day_actual": 3
   },
