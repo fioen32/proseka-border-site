@@ -269,8 +269,12 @@
             {"date":"2026-01-01","title":"お知らせ","body":"status.json が見つからないため仮表示です。","level":"warn"}
         ];
 
-        // 0を正しく表示するための安全なフォーマット（(num || 0) はNG）
-        const formatNumber = (num) => (num === null || num === undefined) ? "---" : Number(num).toLocaleString();
+        // 0を正しく表示するための安全なフォーマット（小数点以下切り捨て）
+const formatNumber = (num) =>
+    (num === null || num === undefined)
+        ? "---"
+        : Math.floor(Number(num)).toLocaleString();
+
 
         function applyTheme(charName) {
             const theme = CHARACTER_THEMES[charName] || DEFAULT_BG;
