@@ -4,18 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プロセカ・イベントボーダー予測</title>
-
+    <!-- Tailwind CSS for utility-first styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         :root {
             --primary-bg: #0f172a;
+            /* 文字色・アクセント用：全キャラ共通のデフォルト色 */
             --accent-main: #22d3ee; 
             --accent-sub: #f472b6;  
             --accent-main-rgb-const: 34, 211, 238;
             --accent-sub-rgb-const: 244, 114, 182;
+            
             --card-glass: rgba(30, 41, 59, 0.7);
+            
+            /* 背景グラデーション用（動的に上書きされる） */
             --bg-gradient-main-rgb: 34, 211, 238;
             --bg-gradient-sub-rgb: 244, 114, 182;
         }
@@ -26,7 +30,7 @@
                 radial-gradient(at 0% 0%, rgba(var(--bg-gradient-main-rgb), 0.15) 0, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(var(--bg-gradient-sub-rgb), 0.15) 0, transparent 50%);
             color: #f8fafc;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             min-height: 100vh;
             transition: background-image 0.8s ease;
         }
@@ -34,9 +38,16 @@
         .glass-card {
             background: var(--card-glass);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
+            border-color: rgba(var(--accent-main-rgb-const), 0.3);
         }
 
         .neon-text-main {
@@ -44,98 +55,332 @@
             text-shadow: 0 0 10px rgba(var(--accent-main-rgb-const), 0.8);
         }
 
+        .badge-character {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.15rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent-main);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .badge-type {
+            background: linear-gradient(135deg, #4c1d95, #6d28d9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.15rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #ede9fe;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .status-info { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .status-warn { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .status-critical { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+        @keyframes pulse-custom {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading-pulse { animation: pulse-custom 2s infinite; }
+
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--accent-main), var(--accent-sub));
+            height: 100%;
+            transition: width 1s ease-out;
+        }
+
         .rank-highlight {
             color: var(--accent-main);
         }
     </style>
 </head>
-
 <body class="p-4 md:p-8">
-<div class="max-w-6xl mx-auto space-y-8">
 
-<header class="glass-card p-6">
-    <h1 id="event-name" class="text-3xl font-black neon-text-main">--</h1>
-    <p class="text-slate-400 text-sm">
-        最終更新: <span id="last-update">--</span>
-    </p>
-</header>
+    <div class="max-w-6xl mx-auto space-y-8">
+        <!-- Header Section -->
+        <header class="glass-card p-6 relative overflow-hidden">
+            <div id="event-header-loading" class="loading-pulse">
+                <div class="h-8 bg-slate-700 w-3/4 mb-4 rounded"></div>
+                <div class="h-4 bg-slate-700 w-1/2 rounded"></div>
+            </div>
+            <div id="event-header-content" class="hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 id="event-name" class="text-2xl md:text-4xl font-black neon-text-main tracking-tighter">--</h1>
+                            <div class="flex gap-2">
+                                <span id="event-banner" class="badge-character">--</span>
+                                <span id="event-type" class="badge-type">--</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-400 mt-1 flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-clock"></i> 最終更新: <span id="last-update">--</span> (JST)
+                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300">次回更新: 21時頃</span>
+                        </p>
+                    </div>
+                    <div class="text-right w-full md:w-auto">
+                        <div class="text-lg font-bold" style="color: var(--accent-main)">Day <span id="current-day">0</span> / <span id="total-days">0</span></div>
+                        <div class="progress-bar-bg w-full md:w-48 mt-2">
+                            <div id="progress-fill" class="progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-<section class="glass-card p-6">
-    <h2 class="text-xl font-bold mb-4">
-        <i class="fa-solid fa-chart-line"></i> ボーダー確認・予測
-    </h2>
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Border Table -->
+                <section class="glass-card p-6 overflow-hidden">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line" style="color: var(--accent-main)"></i> ボーダー確認・予測
+                    </h2>
+                    <div class="table-container overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">順位</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">実績 (21時)</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">翌日21時予測</th>
+                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider" style="color: var(--accent-sub)">最終予測(p50)</th>
+                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider" style="color: var(--accent-main)">安全圏(p90)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="border-table-body">
+                                <!-- JSで生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="border-b border-slate-700 text-xs text-slate-400">
-                    <th class="py-2 px-3">順位</th>
-                    <th class="py-2 px-3">実績(21時)</th>
-                    <th class="py-2 px-3">翌日21時予測</th>
-                    <th class="py-2 px-3">最終予測(p50)</th>
-                    <th class="py-2 px-3">安全圏(p90)</th>
-                </tr>
-            </thead>
-            <tbody id="border-table-body"></tbody>
-        </table>
+                <section class="glass-card p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn" style="color: var(--accent-sub)"></i> お知らせ
+                    </h2>
+                    <div id="status-board" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        <p class="text-slate-500 text-sm italic">読み込み中...</p>
+                    </div>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                <section class="glass-card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question" style="color: var(--accent-main)"></i> このサイトについて
+                    </h2>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        本サイトは、プロセカの過去イベントデータに基づき、独自のアルゴリズムで現在のボーダーから最終数値を予測しています。
+                    </p>
+                </section>
+
+                <section class="glass-card p-6 border-t-4" style="border-top-color: var(--accent-sub)">
+                    <h2 class="text-xl font-bold mb-4 text-slate-100">データ提供・連絡先</h2>
+                    <p class="text-sm text-slate-300 mb-6">データの不備や予測に関するお問い合わせは下記SNSまで。</p>
+                    <div class="flex flex-col gap-3">
+                        <a href="https://twitter.com/Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 font-bold py-2 px-4 rounded-full hover:opacity-80 transition-all">
+                            <i class="fa-brands fa-x-twitter"></i> 公式Xプロフィール
+                        </a>
+                        <a id="dm-button" href="https://twitter.com/messages/compose?recipient_id=Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all" style="background-color: var(--accent-sub)">
+                            <i class="fa-solid fa-envelope"></i> DMで問い合わせる
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="text-center text-slate-500 text-sm py-8">
+            &copy; 2024 Pj_sekai_bdsg. This project is a fan-made site.
+        </footer>
     </div>
-</section>
 
-</div>
+    <script>
+        // --- 背景用テーマ設定 (RGB値のみを制御) ---
+        const CHARACTER_THEMES = {
+            // レオニ (青系背景)
+            "星乃一歌": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
+            "天馬咲希": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
+            "望月穂波": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
+            "日野森志歩": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
+            
+            // モモジャン (黄緑系背景)
+            "花里みのり": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
+            "桐谷遥": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
+            "桃井愛莉": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
+            "日野森雫": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
+            
+            // ビビバス (明るめの赤系背景)
+            "小豆沢こはね": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
+            "白石杏": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
+            "東雲彰人": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
+            "青柳冬弥": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
+            
+            // ワンダショ (オレンジ系背景)
+            "天馬司": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
+            "鳳えむ": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
+            "草薙寧々": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
+            "神代類": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
+            
+            // ニーゴ (淡い紫系背景)
+            "宵崎奏": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" },
+            "朝比奈まふゆ": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" },
+            "東雲絵名": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" },
+            "暁山瑞希": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" }
+        };
 
-<script>
-/* ===============================
-   数値フォーマット（小数点切り捨て）
-   =============================== */
-const formatNumber = (num) =>
-    (num === null || num === undefined)
-        ? "---"
-        : Math.floor(Number(num)).toLocaleString();
+        const DEFAULT_BG = { bg_rgb_main: "34, 211, 238", bg_rgb_sub: "244, 114, 182" };
 
-/* ===============================
-   データ描画
-   =============================== */
-function renderLatest(data) {
-    document.getElementById("event-name").textContent = data.event?.name ?? "--";
-    document.getElementById("last-update").textContent =
-        `${data.snapshot?.jst_date ?? "--"} ${data.snapshot?.approx_time ?? ""}`;
+        // --- Mock Data ---
+        const mockLatest = {
+            "event": {
+                "name": "導く想い、結ぶ縁",
+                "banner": "日野森雫",
+                "type": "チアフル"
+            },
+            "snapshot": {"jst_date":"2024-05-10","approx_time":"21:00"},
+            "progress": {"N":10,"day":3},
+            "ranks": {
+                "10": {"actual":15241500,"final_p50":450000000,"final_p90":520000000,"next_21":45000000},
+                "100": {"actual":3025415,"final_p50":81458633,"final_p90":94397428,"next_21":9979329},
+                "200": {"actual":2214280,"final_p50":38562335,"final_p90":47685422,"next_21":6438576},
+                "1000": {"actual":854120,"final_p50":15240000,"final_p90":18500000,"next_21":1254000}
+            }
+        };
 
-    const tbody = document.getElementById("border-table-body");
-    tbody.innerHTML = "";
+        const mockStatus = [
+            {"date":"2026-01-01","title":"お知らせ","body":"status.json が見つからないため仮表示です。","level":"warn"}
+        ];
 
-    Object.keys(data.ranks)
-        .sort((a,b) => Number(a) - Number(b))
-        .forEach(rank => {
-            const r = data.ranks[rank];
-            const tr = document.createElement("tr");
-            tr.className = "border-b border-slate-800";
+        // 0を正しく表示するための安全なフォーマット（(num || 0) はNG）
+        const formatNumber = (num) => (num === null || num === undefined) ? "---" : Number(num).toLocaleString();
 
-            tr.innerHTML = `
-                <td class="py-3 px-3 font-bold rank-highlight">TOP ${rank}</td>
-                <td class="py-3 px-3 font-mono">${formatNumber(r.actual)}</td>
-                <td class="py-3 px-3 font-mono text-slate-400">${formatNumber(r.next_21)}</td>
-                <td class="py-3 px-3 font-mono font-bold text-pink-400">${formatNumber(r.final_p50)}</td>
-                <td class="py-3 px-3 font-mono font-bold text-cyan-400">${formatNumber(r.final_p90)}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-}
+        function applyTheme(charName) {
+            const theme = CHARACTER_THEMES[charName] || DEFAULT_BG;
+            const root = document.documentElement;
+            // 背景用の変数のみを更新。文字色用変数はCSSの:rootで定義されたまま。
+            root.style.setProperty('--bg-gradient-main-rgb', theme.bg_rgb_main);
+            root.style.setProperty('--bg-gradient-sub-rgb', theme.bg_rgb_sub);
+        }
 
-/* ===============================
-   初期化（mock）
-   =============================== */
-const mockLatest = {
-    event: { name: "導く想い、結ぶ縁" },
-    snapshot: { jst_date: "2026-01-02", approx_time: "22:50" },
-    ranks: {
-        "100": { actual:14638897, next_21:20816362.5955, final_p50:69886778.5587, final_p90:76585948.8165 },
-        "200": { actual:8240780, next_21:11353589.1336, final_p50:34613206.838, final_p90:38792159.3143 }
-    }
-};
+        async function init() {
+            const ts = Date.now();
 
-document.addEventListener("DOMContentLoaded", () => {
-    renderLatest(mockLatest);
-});
-</script>
+            // latest.json
+            try {
+                const res = await fetch(`./data/latest.json?t=${ts}`);
+                const data = res.ok ? await res.json() : mockLatest;
+                try { renderLatest(data); } catch (e) { console.error("renderLatest failed:", e); renderLatest(mockLatest); }
+            } catch (e) {
+                console.error("latest.json error:", e);
+                renderLatest(mockLatest);
+            }
+
+            // status.json（← これが無いと「読み込み中...」のまま）
+            try {
+                const res = await fetch(`./data/status.json?t=${ts}`);
+                const data = res.ok ? await res.json() : mockStatus;
+                try { renderStatus(data); } catch (e) { console.error("renderStatus failed:", e); renderStatus(mockStatus); }
+            } catch (e) {
+                console.error("status.json error:", e);
+                renderStatus(mockStatus);
+            }
+        }
+
+        function renderLatest(data) {
+            const bannerChar = data.event?.banner || "日野森雫";
+            applyTheme(bannerChar);
+
+            document.getElementById('event-header-loading').classList.add('hidden');
+            document.getElementById('event-header-content').classList.remove('hidden');
+            
+            document.getElementById('event-name').textContent = data.event?.name || "--";
+            document.getElementById('event-banner').textContent = bannerChar;
+            document.getElementById('event-type').textContent = data.event?.type || "--";
+
+            // snapshot/progress が無いと落ちるので安全化
+            const jstDate = data.snapshot?.jst_date || "--";
+            const approx = data.snapshot?.approx_time || "--";
+            document.getElementById('last-update').textContent = `${jstDate} ${approx}`;
+            
+            const N = Number(data.progress?.N ?? 0);
+            const day = Number(data.progress?.day ?? 0);
+            document.getElementById('current-day').textContent = day || 0;
+            document.getElementById('total-days').textContent = N || 0;
+
+            const pct = (N > 0) ? Math.max(0, Math.min(100, (day / N) * 100)) : 0;
+            document.getElementById('progress-fill').style.width = `${pct}%`;
+
+            const tbody = document.getElementById('border-table-body');
+            tbody.innerHTML = '';
+
+            const ranks = data.ranks && typeof data.ranks === 'object' ? data.ranks : {};
+            Object.keys(ranks).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).forEach(rank => {
+                const info = ranks[rank] || {};
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-800 hover:bg-white/5 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-4 px-4 font-bold rank-highlight">TOP ${rank}位</td>
+                    <td class="py-4 px-4 font-mono">${formatNumber(info.actual)}</td>
+                    <td class="py-4 px-4 font-mono text-slate-400">${formatNumber(info.next_21)}</td>
+                    <td class="py-4 px-4 font-mono font-bold" style="color: var(--accent-sub)">${formatNumber(info.final_p50)}</td>
+                    <td class="py-4 px-4 font-mono font-bold" style="color: var(--accent-main)">${formatNumber(info.final_p90)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderStatus(data) {
+            const container = document.getElementById('status-board');
+            container.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm">現在、新しいお知らせはありません。</p>';
+                return;
+            }
+
+            // 日付降順（新しい順）
+            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sorted.forEach(item => {
+                const level = item?.level;
+                const cls = (level === 'critical')
+                    ? 'status-critical'
+                    : (level === 'warn')
+                    ? 'status-warn'
+                    : 'status-info';
+
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-r-lg mb-3 ${cls}`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-bold text-slate-100">${item.title ?? ""}</h3>
+                        <span class="text-[10px] text-slate-500 font-mono">${item.date ?? ""}</span>
+                    </div>
+                    <p class="text-sm text-slate-400 mt-1">${item.body ?? ""}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
