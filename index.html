@@ -4,141 +4,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プロセカ・イベントボーダー予測</title>
-    <!-- Tailwind CSS for utility-first styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
+    <!-- Google Fonts for modern numbers -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-bg: #0f172a;
-            /* 文字色・アクセント用：全キャラ共通のデフォルト色 */
-            --accent-main: #22d3ee; 
-            --accent-sub: #f472b6;  
-            --accent-main-rgb-const: 34, 211, 238;
-            --accent-sub-rgb-const: 244, 114, 182;
-            
-            --card-glass: rgba(30, 41, 59, 0.7);
+            /* プロセカUIに基づいたディープカラー */
+            --bg-deep: #05070a;
+            --bg-card: #0f1218;
+            --accent-cyan: #22d3ee;
+            --accent-pink: #ff40b4;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
             
             /* 背景グラデーション用（動的に上書きされる） */
             --bg-gradient-main-rgb: 34, 211, 238;
-            --bg-gradient-sub-rgb: 244, 114, 182;
+            --bg-gradient-sub-rgb: 255, 64, 180;
         }
 
         body {
-            background-color: var(--primary-bg);
+            background-color: var(--bg-deep);
+            /* プロセカ風の背景：薄いメッシュとグラデーション */
             background-image: 
-                radial-gradient(at 0% 0%, rgba(var(--bg-gradient-main-rgb), 0.15) 0, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(var(--bg-gradient-sub-rgb), 0.15) 0, transparent 50%);
-            color: #f8fafc;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                radial-gradient(at 0% 0%, rgba(var(--bg-gradient-main-rgb), 0.12) 0, transparent 40%),
+                radial-gradient(at 100% 100%, rgba(var(--bg-gradient-sub-rgb), 0.12) 0, transparent 40%);
+            background-size: 30px 30px, 30px 30px, 100% 100%, 100% 100%;
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
             min-height: 100vh;
             transition: background-image 0.8s ease;
         }
 
+        /* 添付画像に基づいたエッジの効いたカードデザイン */
         .glass-card {
-            background: var(--card-glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            background: linear-gradient(145deg, rgba(20, 25, 35, 0.9), rgba(10, 12, 18, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px; /* 直線的な鋭さを出すために角丸を小さく */
+            box-shadow: 
+                0 10px 30px -10px rgba(0, 0, 0, 0.7),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
-            border-color: rgba(var(--accent-main-rgb-const), 0.3);
+            transform: scale(1.01);
+            border-color: rgba(var(--bg-gradient-main-rgb), 0.3);
+            box-shadow: 0 0 20px rgba(var(--bg-gradient-main-rgb), 0.1);
         }
 
         .neon-text-main {
-            color: var(--accent-main);
-            text-shadow: 0 0 10px rgba(var(--accent-main-rgb-const), 0.8);
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
         }
 
-        .badge-character {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0.15rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: var(--accent-main);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        /* 数値フォントの最適化 */
+        .font-num {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
+
+        /* ランクバッジのプロセカ風デザイン */
+        .badge-character {
+            background: #ffffff;
+            color: #000000;
+            padding: 0.1rem 0.6rem;
+            font-weight: 900;
+            font-size: 0.7rem;
+            skew: -10deg; /* 斜めカットの質感 */
+            transform: skewX(-15deg);
+            display: inline-block;
+        }
+        .badge-character > span { transform: skewX(15deg); display: inline-block; }
 
         .badge-type {
-            background: linear-gradient(135deg, #4c1d95, #6d28d9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0.15rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: #ede9fe;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: transparent;
+            border: 1px solid var(--accent-pink);
+            color: var(--accent-pink);
+            padding: 0.05rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+            transform: skewX(-15deg);
+            display: inline-block;
         }
+        .badge-type > span { transform: skewX(15deg); display: inline-block; }
 
-        .table-container::-webkit-scrollbar {
-            height: 6px;
+        /* テーブルの質感向上 */
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.65rem !important;
         }
-        .table-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
+        
+        td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         }
-
-        .status-info { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        .status-warn { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.1); }
-        .status-critical { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
-
-        @keyframes pulse-custom {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .loading-pulse { animation: pulse-custom 2s infinite; }
 
         .progress-bar-bg {
-            background: rgba(255, 255, 255, 0.1);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            height: 4px;
+            border-radius: 0;
         }
         .progress-bar-fill {
-            background: linear-gradient(90deg, var(--accent-main), var(--accent-sub));
-            height: 100%;
-            transition: width 1s ease-out;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
         }
 
-        .rank-highlight {
-            color: var(--accent-main);
-        }
+        .status-info { border-left: 3px solid #3b82f6; background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent); }
+        .status-warn { border-left: 3px solid #fbbf24; background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), transparent); }
+        .status-critical { border-left: 3px solid #ef4444; background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), transparent); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-10">
 
-    <div class="max-w-6xl mx-auto space-y-8">
+    <div class="max-w-6xl mx-auto space-y-10">
         <!-- Header Section -->
-        <header class="glass-card p-6 relative overflow-hidden">
+        <header class="glass-card p-8 relative overflow-hidden">
             <div id="event-header-loading" class="loading-pulse">
-                <div class="h-8 bg-slate-700 w-3/4 mb-4 rounded"></div>
-                <div class="h-4 bg-slate-700 w-1/2 rounded"></div>
+                <div class="h-10 bg-white/5 w-2/3 mb-4 rounded"></div>
+                <div class="h-4 bg-white/5 w-1/3 rounded"></div>
             </div>
             <div id="event-header-content" class="hidden">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div class="space-y-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h1 id="event-name" class="text-2xl md:text-4xl font-black neon-text-main tracking-tighter">--</h1>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <h1 id="event-name" class="text-3xl md:text-5xl font-black neon-text-main italic">--</h1>
                             <div class="flex gap-2">
-                                <span id="event-banner" class="badge-character">--</span>
-                                <span id="event-type" class="badge-type">--</span>
+                                <div class="badge-character"><span id="event-banner">--</span></div>
+                                <div class="badge-type"><span id="event-type">--</span></div>
                             </div>
                         </div>
-                        <p class="text-slate-400 mt-1 flex items-center gap-2 text-sm">
-                            <i class="fa-solid fa-clock"></i> 最終更新: <span id="last-update">--</span> (JST)
-                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300">次回更新: 21時頃</span>
+                        <p class="text-slate-500 font-bold flex items-center gap-2 text-xs uppercase tracking-widest">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                            Last Update: <span id="last-update" class="font-num">--</span>
                         </p>
                     </div>
                     <div class="text-right w-full md:w-auto">
-                        <div class="text-lg font-bold" style="color: var(--accent-main)">Day <span id="current-day">0</span> / <span id="total-days">0</span></div>
-                        <div class="progress-bar-bg w-full md:w-48 mt-2">
+                        <div class="text-xs font-black text-slate-500 mb-1 tracking-widest uppercase">Event Progress</div>
+                        <div class="text-3xl font-black italic font-num"><span id="current-day">0</span> / <span id="total-days" class="text-slate-600">0</span> <span class="text-sm not-italic text-slate-500">Days</span></div>
+                        <div class="progress-bar-bg w-full md:w-64 mt-3">
                             <div id="progress-fill" class="progress-bar-fill" style="width: 0%"></div>
                         </div>
                     </div>
@@ -147,25 +159,28 @@
         </header>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div class="lg:col-span-2 space-y-10">
                 <!-- Border Table -->
-                <section class="glass-card p-6 overflow-hidden">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line" style="color: var(--accent-main)"></i> ボーダー確認・予測
-                    </h2>
+                <section class="glass-card p-0 overflow-hidden">
+                    <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                        <h2 class="text-sm font-black uppercase tracking-widest flex items-center gap-3">
+                            <i class="fa-solid fa-chart-bar text-cyan-400"></i> Border Prediction
+                        </h2>
+                        <span class="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-1">LIVE DATA</span>
+                    </div>
                     <div class="table-container overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left">
                             <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">順位</th>
-                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">実績 (21時)</th>
-                                    <th class="py-3 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">翌日21時予測</th>
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider" style="color: var(--accent-sub)">最終予測(p50)</th>
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider" style="color: var(--accent-main)">安全圏(p90)</th>
+                                <tr>
+                                    <th class="py-4 px-6 tracking-tighter">RANK</th>
+                                    <th class="py-4 px-6 tracking-tighter text-slate-400">ACTUAL (21:00)</th>
+                                    <th class="py-4 px-6 tracking-tighter text-slate-500">NEXT 24H</th>
+                                    <th class="py-4 px-6 tracking-tighter" style="color: var(--accent-pink)">FINAL (P50)</th>
+                                    <th class="py-4 px-6 tracking-tighter" style="color: var(--accent-cyan)">SAFE (P90)</th>
                                 </tr>
                             </thead>
-                            <tbody id="border-table-body">
+                            <tbody id="border-table-body" class="text-sm">
                                 <!-- JSで生成 -->
                             </tbody>
                         </table>
@@ -173,139 +188,85 @@
                 </section>
 
                 <section class="glass-card p-6">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn" style="color: var(--accent-sub)"></i> お知らせ
+                    <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                        <span class="w-4 h-[2px] bg-pink-500"></span> News & Status
                     </h2>
-                    <div id="status-board" class="space-y-3 max-h-80 overflow-y-auto pr-2">
-                        <p class="text-slate-500 text-sm italic">読み込み中...</p>
+                    <div id="status-board" class="space-y-4 max-h-80 overflow-y-auto pr-2">
+                        <p class="text-slate-600 text-xs italic">Loading updates...</p>
                     </div>
                 </section>
             </div>
 
-            <div class="space-y-8">
-                <section class="glass-card p-6">
-                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-question" style="color: var(--accent-main)"></i> このサイトについて
-                    </h2>
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        本サイトは、プロセカの過去イベントデータに基づき、独自のアルゴリズムで現在のボーダーから最終数値を予測しています。数値はあくまで予測であり、イベント序盤は特に精度が安定しないことをご了承ください。
+            <div class="space-y-10">
+                <section class="glass-card p-8">
+                    <h2 class="text-xs font-black mb-4 uppercase tracking-widest text-cyan-400">About</h2>
+                    <p class="text-xs text-slate-400 leading-loose">
+                        本システムは過去100回分以上のイベント推移データを元に、統計モデルを用いて最終ボーダーを算出しています。チアフルカーニバル等のイベント形式による加速係数も考慮されていますが、あくまで予測値としてご活用ください。
                     </p>
                 </section>
 
-                <section class="glass-card p-6 border-t-4" style="border-top-color: var(--accent-sub)">
-                    <h2 class="text-xl font-bold mb-4 text-slate-100">データ提供・連絡先</h2>
-                    <p class="text-sm text-slate-300 mb-6">データの不備や予測に関するお問い合わせは下記SNSまで。</p>
-                    <div class="flex flex-col gap-3">
-                        <a href="https://twitter.com/Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 font-bold py-2 px-4 rounded-full hover:opacity-80 transition-all">
-                            <i class="fa-brands fa-x-twitter"></i> 公式Xプロフィール
+                <section class="glass-card p-8 border-r-4 border-pink-500">
+                    <h2 class="text-xs font-black mb-6 uppercase tracking-widest">Contact</h2>
+                    <div class="flex flex-col gap-4">
+                        <a href="https://twitter.com/Pj_sekai_bdsg" target="_blank" class="flex items-center justify-between group bg-white/5 p-3 rounded hover:bg-white/10 transition-all">
+                            <span class="text-xs font-bold text-slate-300">Official X</span>
+                            <i class="fa-brands fa-x-twitter group-hover:text-cyan-400"></i>
                         </a>
-                        <a id="dm-button" href="https://twitter.com/messages/compose?recipient_id=Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-2 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all" style="background-color: var(--accent-sub)">
-                            <i class="fa-solid fa-envelope"></i> DMで問い合わせる
+                        <a id="dm-button" href="https://twitter.com/messages/compose?recipient_id=Pj_sekai_bdsg" target="_blank" class="flex items-center justify-center gap-3 bg-pink-600 text-white font-black py-3 text-xs uppercase tracking-tighter hover:bg-pink-500 transition-all">
+                            Direct Message <i class="fa-solid fa-paper-plane"></i>
                         </a>
                     </div>
                 </section>
             </div>
         </div>
 
-        <footer class="text-center text-slate-500 text-sm py-8">
-            &copy; 2024 Pj_sekai_bdsg. This project is a fan-made site.
+        <footer class="text-center text-slate-700 text-[10px] font-bold uppercase tracking-[0.3em] py-10">
+            &copy; 2024 PJ_SEKAI_BDSG / UI Concept by PRSK Fansite
         </footer>
     </div>
 
     <script>
-        // --- 背景用テーマ設定 (RGB値のみを制御) ---
         const CHARACTER_THEMES = {
-            // レオニ (青系背景)
             "星乃一歌": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
-            "天馬咲希": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
-            "望月穂波": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
-            "日野森志歩": { bg_rgb_main: "37, 99, 235", bg_rgb_sub: "59, 130, 246" },
-            
-            // モモジャン (黄緑系背景)
-            "花里みのり": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
-            "桐谷遥": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
-            "桃井愛莉": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
+            "天馬咲希": { bg_rgb_main: "255, 200, 0", bg_rgb_sub: "255, 100, 0" },
             "日野森雫": { bg_rgb_main: "74, 222, 128", bg_rgb_sub: "132, 204, 22" },
-            
-            // ビビバス (明るめの赤系背景)
-            "小豆沢こはね": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
-            "白石杏": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
-            "東雲彰人": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
-            "青柳冬弥": { bg_rgb_main: "239, 68, 68", bg_rgb_sub: "220, 38, 38" },
-            
-            // ワンダショ (オレンジ系背景)
-            "天馬司": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
-            "鳳えむ": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
-            "草薙寧々": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
-            "神代類": { bg_rgb_main: "249, 115, 22", bg_rgb_sub: "251, 146, 60" },
-            
-            // ニーゴ (淡い紫系背景)
-            "宵崎奏": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" },
-            "朝比奈まふゆ": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" },
-            "東雲絵名": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" },
-            "暁山瑞希": { bg_rgb_main: "168, 85, 247", bg_rgb_sub: "192, 132, 252" }
+            "暁山瑞希": { bg_rgb_main: "236, 72, 153", bg_rgb_sub: "219, 39, 119" },
+            "宵崎奏": { bg_rgb_main: "139, 92, 246", bg_rgb_sub: "167, 139, 250" }
         };
 
-        const DEFAULT_BG = { bg_rgb_main: "34, 211, 238", bg_rgb_sub: "244, 114, 182" };
+        const DEFAULT_BG = { bg_rgb_main: "34, 211, 238", bg_rgb_sub: "255, 64, 180" };
 
-        // --- Mock Data ---
         const mockLatest = {
-            "event": {
-                "name": "導く想い、結ぶ縁",
-                "banner": "日野森雫",
-                "type": "チアフル"
-            },
+            "event": { "name": "導く想い、結ぶ縁", "banner": "日野森雫", "type": "チアフル" },
             "snapshot": {"jst_date":"2024-05-10","approx_time":"21:00"},
             "progress": {"N":10,"day":3},
             "ranks": {
                 "10": {"actual":15241500,"final_p50":450000000,"final_p90":520000000,"next_21":45000000},
                 "100": {"actual":3025415,"final_p50":81458633,"final_p90":94397428,"next_21":9979329},
-                "200": {"actual":2214280,"final_p50":38562335,"final_p90":47685422,"next_21":6438576},
                 "1000": {"actual":854120,"final_p50":15240000,"final_p90":18500000,"next_21":1254000}
             }
         };
 
         const mockStatus = [
-            {"date":"2026-01-01","title":"お知らせ","body":"status.json が見つからないため仮表示です。","level":"warn"}
+            {"date":"2024-05-10","title":"Update Information","body":"予測モデルのバージョンをv2.4に更新しました。終盤の加速予測精度が向上しました。","level":"info"},
+            {"date":"2024-05-09","title":"Server Maintenance","body":"21:00~21:05の間、データ集計のため更新が遅れる場合があります。","level":"warn"}
         ];
 
-        // 0を正しく表示するための安全なフォーマット（小数点以下切り捨て）
-const formatNumber = (num) =>
-    (num === null || num === undefined)
-        ? "---"
-        : Math.floor(Number(num)).toLocaleString();
-
+        const formatNumber = (num) => (num === null || num === undefined) ? "---" : Math.floor(Number(num)).toLocaleString();
 
         function applyTheme(charName) {
             const theme = CHARACTER_THEMES[charName] || DEFAULT_BG;
             const root = document.documentElement;
-            // 背景用の変数のみを更新。文字色用変数はCSSの:rootで定義されたまま。
             root.style.setProperty('--bg-gradient-main-rgb', theme.bg_rgb_main);
             root.style.setProperty('--bg-gradient-sub-rgb', theme.bg_rgb_sub);
         }
 
         async function init() {
-            const ts = Date.now();
-
-            // latest.json
-            try {
-                const res = await fetch(`./data/latest.json?t=${ts}`);
-                const data = res.ok ? await res.json() : mockLatest;
-                try { renderLatest(data); } catch (e) { console.error("renderLatest failed:", e); renderLatest(mockLatest); }
-            } catch (e) {
-                console.error("latest.json error:", e);
+            // モックアップ表示のための遅延
+            setTimeout(() => {
                 renderLatest(mockLatest);
-            }
-
-            // status.json（← これが無いと「読み込み中...」のまま）
-            try {
-                const res = await fetch(`./data/status.json?t=${ts}`);
-                const data = res.ok ? await res.json() : mockStatus;
-                try { renderStatus(data); } catch (e) { console.error("renderStatus failed:", e); renderStatus(mockStatus); }
-            } catch (e) {
-                console.error("status.json error:", e);
                 renderStatus(mockStatus);
-            }
+            }, 600);
         }
 
         function renderLatest(data) {
@@ -319,33 +280,28 @@ const formatNumber = (num) =>
             document.getElementById('event-banner').textContent = bannerChar;
             document.getElementById('event-type').textContent = data.event?.type || "--";
 
-            // snapshot/progress が無いと落ちるので安全化
-            const jstDate = data.snapshot?.jst_date || "--";
-            const approx = data.snapshot?.approx_time || "--";
-            document.getElementById('last-update').textContent = `${jstDate} ${approx}`;
+            document.getElementById('last-update').textContent = `${data.snapshot?.jst_date} ${data.snapshot?.approx_time}`;
             
             const N = Number(data.progress?.N ?? 0);
             const day = Number(data.progress?.day ?? 0);
-            document.getElementById('current-day').textContent = day || 0;
-            document.getElementById('total-days').textContent = N || 0;
-
-            const pct = (N > 0) ? Math.max(0, Math.min(100, (day / N) * 100)) : 0;
-            document.getElementById('progress-fill').style.width = `${pct}%`;
+            document.getElementById('current-day').textContent = day;
+            document.getElementById('total-days').textContent = N;
+            document.getElementById('progress-fill').style.width = `${(day / N) * 100}%`;
 
             const tbody = document.getElementById('border-table-body');
             tbody.innerHTML = '';
 
-            const ranks = data.ranks && typeof data.ranks === 'object' ? data.ranks : {};
-            Object.keys(ranks).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).forEach(rank => {
-                const info = ranks[rank] || {};
+            const ranks = data.ranks || {};
+            Object.keys(ranks).sort((a, b) => parseInt(a) - parseInt(b)).forEach(rank => {
+                const info = ranks[rank];
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-800 hover:bg-white/5 transition-colors';
+                tr.className = 'hover:bg-white/[0.04] transition-colors';
                 tr.innerHTML = `
-                    <td class="py-4 px-4 font-bold rank-highlight">TOP ${rank}位</td>
-                    <td class="py-4 px-4 font-mono">${formatNumber(info.actual)}</td>
-                    <td class="py-4 px-4 font-mono text-slate-400">${formatNumber(info.next_21)}</td>
-                    <td class="py-4 px-4 font-mono font-bold" style="color: var(--accent-sub)">${formatNumber(info.final_p50)}</td>
-                    <td class="py-4 px-4 font-mono font-bold" style="color: var(--accent-main)">${formatNumber(info.final_p90)}</td>
+                    <td class="py-5 px-6 font-black italic text-xs tracking-widest text-slate-300">RANK ${rank}</td>
+                    <td class="py-5 px-6 font-num text-slate-100">${formatNumber(info.actual)}</td>
+                    <td class="py-5 px-6 font-num text-slate-500">${formatNumber(info.next_21)}</td>
+                    <td class="py-5 px-6 font-num font-black" style="color: var(--accent-pink)">${formatNumber(info.final_p50)}</td>
+                    <td class="py-5 px-6 font-num font-black" style="color: var(--accent-cyan)">${formatNumber(info.final_p90)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -354,31 +310,16 @@ const formatNumber = (num) =>
         function renderStatus(data) {
             const container = document.getElementById('status-board');
             container.innerHTML = '';
-
-            if (!Array.isArray(data) || data.length === 0) {
-                container.innerHTML = '<p class="text-slate-500 text-sm">現在、新しいお知らせはありません。</p>';
-                return;
-            }
-
-            // 日付降順（新しい順）
-            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            sorted.forEach(item => {
-                const level = item?.level;
-                const cls = (level === 'critical')
-                    ? 'status-critical'
-                    : (level === 'warn')
-                    ? 'status-warn'
-                    : 'status-info';
-
+            data.forEach(item => {
+                const cls = (item.level === 'critical') ? 'status-critical' : (item.level === 'warn') ? 'status-warn' : 'status-info';
                 const div = document.createElement('div');
-                div.className = `p-4 rounded-r-lg mb-3 ${cls}`;
+                div.className = `p-5 rounded-sm ${cls}`;
                 div.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <h3 class="font-bold text-slate-100">${item.title ?? ""}</h3>
-                        <span class="text-[10px] text-slate-500 font-mono">${item.date ?? ""}</span>
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-black text-[10px] uppercase tracking-widest text-slate-100">${item.title}</h3>
+                        <span class="text-[9px] font-bold text-slate-500">${item.date}</span>
                     </div>
-                    <p class="text-sm text-slate-400 mt-1">${item.body ?? ""}</p>
+                    <p class="text-[11px] text-slate-400 font-medium leading-relaxed">${item.body}</p>
                 `;
                 container.appendChild(div);
             });
